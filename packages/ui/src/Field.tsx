@@ -12,7 +12,7 @@ export interface FieldProps {
 /** Label + control + error/hint wrapper for forms. */
 export function Field({ label, htmlFor, error, hint, children, className }: FieldProps) {
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
+    <div className={cn("flex flex-col gap-2", className)}>
       <label htmlFor={htmlFor} className="text-sm font-medium text-fg">
         {label}
       </label>

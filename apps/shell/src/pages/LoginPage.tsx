@@ -48,7 +48,7 @@ export function LoginPage() {
   });
 
   return (
-    <div className="grid min-h-full place-items-center bg-surface-sunken p-4">
+    <div className="grid min-h-full place-items-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>{mode === "login" ? "Welcome back" : "Create your account"}</CardTitle>

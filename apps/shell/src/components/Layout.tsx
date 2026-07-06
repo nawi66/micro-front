@@ -18,7 +18,7 @@ function WorkspaceSwitcher() {
     <select
       value={activeId ?? ""}
       onChange={(e) => setActive(e.target.value)}
-      className="h-9 rounded-md border border-border bg-surface-raised px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="h-9 rounded-md border border-glass-border bg-glass-raised px-2.5 text-sm text-fg backdrop-blur-md focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
       aria-label="Active workspace"
     >
       {workspaces.map((w) => (
@@ -37,7 +37,7 @@ export function Layout() {
 
   return (
     <div className="flex h-full">
-      <aside className="flex w-56 shrink-0 flex-col gap-1 border-r border-border bg-surface-sunken p-3">
+      <aside className="flex w-56 shrink-0 flex-col gap-1 border-r border-glass-border bg-glass p-3 backdrop-blur-xl">
         <div className="mb-4 flex items-center gap-2 px-2 py-1">
           <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-sm font-bold text-primary-fg">
             P
@@ -66,7 +66,7 @@ export function Layout() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border px-5">
+        <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-glass-border bg-glass px-5 backdrop-blur-xl">
           <WorkspaceSwitcher />
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">

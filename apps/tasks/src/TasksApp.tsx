@@ -50,7 +50,7 @@ export default function TasksApp({ workspaceId }: { workspaceId: string }) {
 
       <form
         onSubmit={onCreate}
-        className="flex items-end gap-3 rounded-card border border-border bg-surface-raised p-4"
+        className="flex items-end gap-3 rounded-card border border-glass-border bg-glass p-4 shadow-xl shadow-black/5 backdrop-blur-xl"
       >
         <Field label="New task" htmlFor="title" className="flex-1">
           <Input
@@ -62,7 +62,7 @@ export default function TasksApp({ workspaceId }: { workspaceId: string }) {
         <Field label="Priority" htmlFor="priority">
           <select
             id="priority"
-            className="h-10 rounded-md border border-border bg-surface-raised px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="h-11 rounded-md border border-glass-border bg-glass-raised px-3 text-sm text-fg backdrop-blur-md focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             {...register("priority")}
           >
             <option value="low">Low</option>

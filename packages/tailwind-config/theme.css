@@ -10,6 +10,15 @@
 /* Enable class-based dark variant (`dark:` utilities key off `.dark` ancestor). */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Scan the shared component library for utility classes. Tailwind v4 auto-detects
+ * an app's own sources but ignores node_modules, and workspace packages are
+ * symlinked there — so without this, classes used only inside @pulse/ui
+ * components (input height/padding, button sizes, focus rings) are never
+ * generated. Path is relative to this file (packages/tailwind-config/).
+ */
+@source "../ui/src";
+
 @theme {
   /* Semantic color tokens — resolved from the CSS variables below. */
   --color-surface: var(--pulse-surface);
@@ -27,7 +36,12 @@
   --color-success: var(--pulse-success);
   --color-warning: var(--pulse-warning);
 
-  --radius-card: 0.75rem;
+  /* Glass surface tokens — translucent panels layered over the app gradient. */
+  --color-glass: var(--pulse-glass);
+  --color-glass-raised: var(--pulse-glass-raised);
+  --color-glass-border: var(--pulse-glass-border);
+
+  --radius-card: 0.875rem;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -47,6 +61,18 @@
   --pulse-danger-fg: oklch(99% 0 0);
   --pulse-success: oklch(60% 0.16 150);
   --pulse-warning: oklch(72% 0.16 75);
+
+  /* Glass: frosted white panels + hairline border for light mode. */
+  --pulse-glass: oklch(100% 0 0 / 0.55);
+  --pulse-glass-raised: oklch(100% 0 0 / 0.72);
+  --pulse-glass-border: oklch(30% 0.03 265 / 0.1);
+
+  /* App backdrop — soft aurora the glass floats over. */
+  --pulse-app-bg:
+    radial-gradient(1100px 620px at 12% -12%, oklch(90% 0.09 265 / 0.55), transparent 60%),
+    radial-gradient(980px 560px at 100% 0%, oklch(89% 0.09 320 / 0.42), transparent 55%),
+    radial-gradient(900px 700px at 50% 120%, oklch(92% 0.07 200 / 0.4), transparent 60%),
+    var(--pulse-surface-sunken);
 }
 
 /* Dark theme. */
@@ -65,4 +91,16 @@
   --pulse-danger-fg: oklch(16% 0.02 265);
   --pulse-success: oklch(68% 0.15 150);
   --pulse-warning: oklch(78% 0.15 75);
+
+  /* Glass: subtle raised tint + luminous hairline for dark mode. */
+  --pulse-glass: oklch(30% 0.02 265 / 0.5);
+  --pulse-glass-raised: oklch(34% 0.025 265 / 0.62);
+  --pulse-glass-border: oklch(100% 0 0 / 0.12);
+
+  /* App backdrop — deep aurora tuned for dark surfaces. */
+  --pulse-app-bg:
+    radial-gradient(1100px 620px at 12% -12%, oklch(45% 0.13 265 / 0.5), transparent 60%),
+    radial-gradient(980px 560px at 100% 0%, oklch(42% 0.13 320 / 0.4), transparent 55%),
+    radial-gradient(900px 700px at 50% 120%, oklch(44% 0.1 200 / 0.38), transparent 60%),
+    var(--pulse-surface-sunken);
 }

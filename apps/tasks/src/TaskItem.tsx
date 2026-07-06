@@ -22,7 +22,7 @@ interface TaskItemProps {
 
 export function TaskItem({ task, onAdvance, onDelete, busy }: TaskItemProps) {
   return (
-    <div className="flex items-start gap-3 rounded-md border border-border bg-surface-raised p-3">
+    <div className="flex items-start gap-3 rounded-md border border-glass-border bg-glass p-3 shadow-lg shadow-black/5 backdrop-blur-md transition-colors">
       <button
         type="button"
         aria-label="Advance status"
