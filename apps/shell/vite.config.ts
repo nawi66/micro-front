@@ -12,6 +12,9 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const dashboardUrl = env.VITE_REMOTE_DASHBOARD ?? "http://localhost:3001/assets/remoteEntry.js";
   const tasksUrl = env.VITE_REMOTE_TASKS ?? "http://localhost:3002/assets/remoteEntry.js";
+  const docsUrl = env.VITE_REMOTE_DOCS ?? "http://localhost:3003/assets/remoteEntry.js";
+  const teamUrl = env.VITE_REMOTE_TEAM ?? "http://localhost:3004/assets/remoteEntry.js";
+  const adminUrl = env.VITE_REMOTE_ADMIN ?? "http://localhost:3005/assets/remoteEntry.js";
 
   return {
     plugins: [
@@ -22,6 +25,9 @@ export default defineConfig(({ mode }) => {
         remotes: {
           dashboard: dashboardUrl,
           tasks: tasksUrl,
+          docs: docsUrl,
+          team: teamUrl,
+          admin: adminUrl,
         },
         shared: ["react", "react-dom", "@tanstack/react-query", "@pulse/auth", "@pulse/ui"],
       }),

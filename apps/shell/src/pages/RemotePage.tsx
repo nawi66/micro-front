@@ -7,9 +7,10 @@ import { NoWorkspace } from "./NoWorkspace.js";
  * Host page for a federated MFE. Resolves the active workspace, then mounts the
  * remote with its id. No workspace → onboarding; still loading → spinner.
  */
-export function RemotePage({ remote }: { remote: "dashboard" | "tasks" }) {
+type Remote = "dashboard" | "tasks" | "docs" | "team" | "admin";
+
+export function RemotePage({ remote }: { remote: Remote }) {
   const { active, isLoading, isError } = useWorkspaces();
-console.log(active,isLoading, isError);
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center text-fg-muted">

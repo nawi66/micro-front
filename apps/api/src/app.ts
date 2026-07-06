@@ -5,6 +5,7 @@ import { requestContext } from "./middleware/request-context.js";
 import { securityMiddleware } from "./middleware/security.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
+import { usersRouter } from "./modules/users/users.routes.js";
 import { workspacesRouter } from "./modules/workspaces/workspaces.routes.js";
 
 /**
@@ -46,6 +47,7 @@ export function createApp(): Express {
     res.status(200).json({ status: "ok" });
   });
   app.use("/auth", authRouter);
+  app.use("/users", usersRouter);
   app.use("/workspaces", workspacesRouter);
 
   // 6. 404.

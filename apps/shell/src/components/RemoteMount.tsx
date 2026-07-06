@@ -9,6 +9,9 @@ type RemoteComponent = ComponentType<{ workspaceId: string }>;
 const remotes: Record<string, LazyExoticComponent<RemoteComponent>> = {
   dashboard: lazy(() => import("dashboard/App")),
   tasks: lazy(() => import("tasks/App")),
+  docs: lazy(() => import("docs/App")),
+  team: lazy(() => import("team/App")),
+  admin: lazy(() => import("admin/App")),
 };
 
 interface RemoteMountProps {

@@ -108,6 +108,86 @@ export const workspacesService = {
     return member.toDTO();
   },
 
+  /** Update a workspace's mutable settings (currently: name). */
+  async updateSettings(
+    workspaceId: string,
+    input: { name?: string },
+    role: Role,
+  ): Promise<Workspace> {
+    const ws = await WorkspaceModel.findById(workspaceId);
+    if (!ws) throw new NotFoundError("Workspace not found");
+    if (input.name !== undefined) ws.name = input.name;
+    await ws.save();
+    logger.info({ event: "workspace_updated", workspaceId }, "workspace updated");
+    return ws.toDTO(role);
+  },
+
+  /** Count of members in a workspace — for the admin overview. */
+  async countMembers(workspaceId: string): Promise<number> {
+    return WorkspaceMemberModel.countDocuments({
+      workspaceId: new mongoose.Types.ObjectId(workspaceId),
+    });
+  },
+
+  /**
+   * Delete a workspace and all its memberships. Tenant resources (tasks, docs)
+   * are purged by the admin module's orchestration within the same session.
+   */
+  async deleteWorkspace(
+    workspaceId: string,
+    session?: mongoose.ClientSession,
+  ): Promise<void> {
+    const id = new mongoose.Types.ObjectId(workspaceId);
+    const opts = session ? { session } : {};
+    await WorkspaceMemberModel.deleteMany({ workspaceId: id }, opts);
+    const res = await WorkspaceModel.deleteOne({ _id: id }, opts);
+    if (res.deletedCount === 0) throw new NotFoundError("Workspace not found");
+    logger.info({ event: "workspace_deleted", workspaceId }, "workspace deleted");
+  },
+
+  /**
+   * Change a member's role. Referenced by membership id, tenant-scoped. `owner`
+   * cannot be granted this way, and the sole owner cannot be demoted.
+   */
+  async changeRole(
+    workspaceId: string,
+    memberId: string,
+    role: Exclude<Role, "owner">,
+  ): Promise<WorkspaceMember> {
+    const member = await WorkspaceMemberModel.findOne({
+      _id: new mongoose.Types.ObjectId(memberId),
+      workspaceId: new mongoose.Types.ObjectId(workspaceId),
+    });
+    if (!member) throw new NotFoundError("Member not found");
+
+    if (member.role === "owner") {
+      await this.assertNotSoleOwner(workspaceId, member.userId.toString());
+    }
+    member.role = role;
+    await member.save();
+    logger.info(
+      { event: "member_role_changed", workspaceId, userId: member.userId.toString(), role },
+      "member role changed",
+    );
+    return member.toDTO();
+  },
+
+  /** Remove a member from a workspace. The sole owner cannot be removed. */
+  async removeMember(workspaceId: string, memberId: string): Promise<void> {
+    const member = await WorkspaceMemberModel.findOne({
+      _id: new mongoose.Types.ObjectId(memberId),
+      workspaceId: new mongoose.Types.ObjectId(workspaceId),
+    });
+    if (!member) throw new NotFoundError("Member not found");
+
+    await this.assertNotSoleOwner(workspaceId, member.userId.toString());
+    await member.deleteOne();
+    logger.info(
+      { event: "member_removed", workspaceId, userId: member.userId.toString() },
+      "member removed",
+    );
+  },
+
   /** Guard helper: ensure an actor isn't the sole owner before destructive ops. */
   async assertNotSoleOwner(workspaceId: string, userId: string): Promise<void> {
     const owners = await WorkspaceMemberModel.countDocuments({

@@ -72,4 +72,20 @@ export const tasksService = {
     const res = await TaskModel.deleteOne({ _id: oid(taskId), workspaceId: oid(workspaceId) });
     if (res.deletedCount === 0) throw new NotFoundError("Task not found");
   },
+
+  /** Count of tasks in a workspace — for the admin overview. */
+  async countForWorkspace(workspaceId: string): Promise<number> {
+    return TaskModel.countDocuments({ workspaceId: oid(workspaceId) });
+  },
+
+  /** Purge every task in a workspace — called when a workspace is deleted. */
+  async deleteAllForWorkspace(
+    workspaceId: string,
+    session?: mongoose.ClientSession,
+  ): Promise<void> {
+    await TaskModel.deleteMany(
+      { workspaceId: oid(workspaceId) },
+      session ? { session } : {},
+    );
+  },
 };

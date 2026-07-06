@@ -4,6 +4,9 @@ import { requireWorkspace } from "../../middleware/tenant.js";
 import { requireRole } from "../../middleware/rbac.js";
 import { validate } from "../../middleware/validate.js";
 import { tasksRouter } from "../tasks/tasks.routes.js";
+import { docsRouter } from "../docs/docs.routes.js";
+import { teamRouter } from "../team/team.routes.js";
+import { adminRouter } from "../admin/admin.routes.js";
 import { workspacesController } from "./workspaces.controller.js";
 import {
   addMemberSchema,
@@ -49,5 +52,9 @@ workspacesRouter.post(
   workspacesController.addMember,
 );
 
-// Tasks are nested under a workspace and inherit its tenant boundary.
+// Nested resources inherit the workspace tenant boundary (each runs its own
+// requireAuth + requireWorkspace, so they are safe mounted standalone too).
 workspacesRouter.use("/:workspaceId/tasks", tasksRouter);
+workspacesRouter.use("/:workspaceId/docs", docsRouter);
+workspacesRouter.use("/:workspaceId/team", teamRouter);
+workspacesRouter.use("/:workspaceId/admin", adminRouter);
