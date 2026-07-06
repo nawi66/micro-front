@@ -47,9 +47,27 @@ const tasksRoute = createRoute({
   component: () => <RemotePage remote="tasks" />,
 });
 
+const docsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/docs",
+  component: () => <RemotePage remote="docs" />,
+});
+
+const teamRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/team",
+  component: () => <RemotePage remote="team" />,
+});
+
+const adminRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/admin",
+  component: () => <RemotePage remote="admin" />,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
-  appRoute.addChildren([dashboardRoute, tasksRoute]),
+  appRoute.addChildren([dashboardRoute, tasksRoute, docsRoute, teamRoute, adminRoute]),
 ]);
 
 export const router = createRouter({ routeTree, defaultPreload: "intent" });

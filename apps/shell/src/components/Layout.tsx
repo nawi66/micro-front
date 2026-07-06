@@ -8,6 +8,9 @@ import { useWorkspaceStore } from "../stores/workspace.js";
 const NAV = [
   { to: "/", label: "Dashboard", exact: true },
   { to: "/tasks", label: "Tasks", exact: false },
+  { to: "/docs", label: "Docs", exact: false },
+  { to: "/team", label: "Team", exact: false },
+  { to: "/admin", label: "Admin", exact: false },
 ] as const;
 
 function WorkspaceSwitcher() {

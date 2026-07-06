@@ -36,6 +36,17 @@ export interface WorkspaceMember {
   createdAt: string;
 }
 
+/** A workspace member enriched with the user's profile — the "team roster" shape. */
+export interface TeamMember {
+  id: string;
+  userId: string;
+  workspaceId: string;
+  role: Role;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
 export type TaskStatus = "todo" | "in_progress" | "done";
 export type TaskPriority = "low" | "medium" | "high";
 
@@ -49,6 +60,28 @@ export interface Task {
   priority: TaskPriority;
   assigneeId: string | null;
   createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Admin overview of a workspace: the workspace plus resource counts. */
+export interface WorkspaceOverview {
+  workspace: Workspace;
+  counts: {
+    members: number;
+    tasks: number;
+    docs: number;
+  };
+}
+
+/** A collaborative document, always scoped to a workspace. */
+export interface Doc {
+  id: string;
+  workspaceId: string;
+  title: string;
+  content: string;
+  createdBy: string;
+  updatedBy: string;
   createdAt: string;
   updatedAt: string;
 }

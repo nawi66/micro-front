@@ -39,6 +39,36 @@ export const taskSchema = z.object({
   updatedAt: z.string(),
 });
 
+export const docSchema = z.object({
+  id: z.string(),
+  workspaceId: z.string(),
+  title: z.string(),
+  content: z.string(),
+  createdBy: z.string(),
+  updatedBy: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const teamMemberSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  workspaceId: z.string(),
+  role: z.enum(["owner", "admin", "member", "viewer"]),
+  name: z.string(),
+  email: z.string(),
+  createdAt: z.string(),
+});
+
+export const workspaceOverviewSchema = z.object({
+  workspace: workspaceSchema,
+  counts: z.object({
+    members: z.number(),
+    tasks: z.number(),
+    docs: z.number(),
+  }),
+});
+
 export const authTokenSchema = z.object({
   accessToken: z.string(),
   expiresIn: z.number(),
@@ -53,3 +83,6 @@ export const memberEnvelope = z.object({ member: memberSchema });
 export const membersEnvelope = z.object({ members: z.array(memberSchema) });
 export const taskEnvelope = z.object({ task: taskSchema });
 export const tasksEnvelope = z.object({ tasks: z.array(taskSchema) });
+export const docEnvelope = z.object({ doc: docSchema });
+export const docsEnvelope = z.object({ docs: z.array(docSchema) });
+export const teamMembersEnvelope = z.object({ members: z.array(teamMemberSchema) });

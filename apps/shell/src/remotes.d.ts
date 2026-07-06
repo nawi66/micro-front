@@ -13,3 +13,21 @@ declare module "dashboard/App" {
   const DashboardApp: ComponentType<{ workspaceId: string }>;
   export default DashboardApp;
 }
+
+declare module "docs/App" {
+  import type { ComponentType } from "react";
+  const DocsApp: ComponentType<{ workspaceId: string }>;
+  export default DocsApp;
+}
+
+declare module "team/App" {
+  import type { ComponentType } from "react";
+  const TeamApp: ComponentType<{ workspaceId: string }>;
+  export default TeamApp;
+}
+
+declare module "admin/App" {
+  import type { ComponentType } from "react";
+  const AdminApp: ComponentType<{ workspaceId: string }>;
+  export default AdminApp;
+}

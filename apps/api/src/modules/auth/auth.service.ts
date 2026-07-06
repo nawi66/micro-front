@@ -202,6 +202,55 @@ export const authService = {
     return user ? user.toDTO() : null;
   },
 
+  /** Resolve many user DTOs by id. Other modules use this instead of the model. */
+  async findUsersByIds(ids: string[]): Promise<User[]> {
+    if (ids.length === 0) return [];
+    const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+    // ids are server-derived (from memberships); mark the operator trusted so
+    // sanitizeFilter does not rewrite $in into $eq (see workspaces.service).
+    const users = await UserModel.find({ _id: mongoose.trusted({ $in: objectIds }) });
+    return users.map((u) => u.toDTO());
+  },
+
+  /** Update the current user's mutable profile fields. */
+  async updateProfile(userId: string, input: { name?: string }): Promise<User> {
+    const user = await UserModel.findById(userId);
+    if (!user) throw new UnauthorizedError();
+    if (input.name !== undefined) user.name = input.name;
+    await user.save();
+    logger.info({ event: "profile_updated", userId }, "profile updated");
+    return user.toDTO();
+  },
+
+  /**
+   * Change the current user's password. Requires the current password. On
+   * success every active session is revoked (§9.1) — the user re-authenticates.
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await UserModel.findById(userId);
+    if (!user) throw new UnauthorizedError();
+
+    const ok = await verifyPassword(user.passwordHash, currentPassword);
+    if (!ok) throw new UnauthorizedError("Current password is incorrect");
+
+    user.passwordHash = await hashPassword(newPassword);
+    await user.save();
+    await this.revokeAllSessions(userId);
+    logger.info({ event: "password_changed", userId }, "password changed");
+  },
+
+  /** Revoke every non-revoked refresh token for a user (all devices). */
+  async revokeAllSessions(userId: string): Promise<void> {
+    await RefreshTokenModel.updateMany(
+      { userId: new mongoose.Types.ObjectId(userId), revokedAt: null },
+      { $set: { revokedAt: new Date() } },
+    );
+  },
+
   /** Revoke the presented refresh token (idempotent). */
   async logout(rawToken: string | undefined): Promise<void> {
     if (!rawToken) return;
