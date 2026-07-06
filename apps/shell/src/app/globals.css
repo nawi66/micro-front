@@ -1,0 +1,15 @@
+@import "tailwindcss";
+@import "@pulse/tailwind-config/theme.css";
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}

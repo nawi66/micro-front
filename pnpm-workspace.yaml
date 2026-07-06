@@ -1,0 +1,13 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+allowBuilds:
+  argon2: true
+  esbuild: true
+  mongodb-memory-server: true
+
+onlyBuiltDependencies:
+  - argon2
+  - esbuild
+  - mongodb-memory-server

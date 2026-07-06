@@ -1,0 +1,28 @@
+# Shared DEV image for the whole PulseHQ workspace.
+# One image, reused by every service in docker-compose.yml — each service just
+# runs a different dev command against the bind-mounted source.
+#
+# Deps are installed *inside* the image (Linux) because apps/api depends on
+# argon2, a native module. The host's macOS-built node_modules must never be
+# used in the container — .dockerignore keeps them out, and compose shadows
+# every node_modules dir with an anonymous volume so this install survives the
+# source bind-mount.
+FROM node:22-slim
+
+# Build toolchain for native deps (argon2) when a prebuilt binary isn't used.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3 make g++ ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV PNPM_HOME="/pnpm" PATH="/pnpm:$PATH"
+RUN corepack enable
+
+WORKDIR /repo
+
+# Copy the whole workspace (node_modules excluded via .dockerignore) and install
+# once for all apps + packages. Turbo/pnpm workspace links are set up here.
+COPY . .
+RUN pnpm install --frozen-lockfile=false
+
+# shell 3000 | dashboard 3001 | tasks 3002 | api 4000
+EXPOSE 3000 3001 3002 4000

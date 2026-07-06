@@ -1,0 +1,4 @@
+{
+  "extends": "@pulse/tsconfig/react-library.json",
+  "include": ["src"]
+}

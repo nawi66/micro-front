@@ -1,0 +1,17 @@
+# Keep host-built artifacts out of the image. node_modules is the important one:
+# the host is macOS and argon2 is a native module — a mac binary will not load
+# in the Linux container. Deps are installed fresh inside the image instead.
+node_modules
+**/node_modules
+dist
+**/dist
+.turbo
+**/.turbo
+coverage
+**/coverage
+.git
+*.log
+.env
+**/.env
+.DS_Store
+**/.vite

@@ -1,0 +1,90 @@
+# PulseHQ — full stack in one compose stack (dev mode, hot reload).
+#
+#   docker compose up --build
+#
+# Brings up: api + shell + dashboard + tasks. MongoDB is cloud-hosted — set
+# MONGO_URI in a root .env. Source is bind-mounted so
+# edits on the host hot-reload inside the containers. Deps live in anonymous
+# volumes (see x-node-modules) so the Linux-installed node_modules — including
+# native argon2 — are never clobbered by the host's macOS ./node_modules.
+#
+# Open the app at http://localhost:3000 (shell). The browser loads each MFE's
+# remoteEntry directly from :3001 / :3002, which is why every frontend publishes
+# its own port.
+
+# All frontends share this image + these volumes. YAML anchors keep it DRY.
+x-web-build: &web-build
+  context: .
+  dockerfile: Dockerfile.dev
+
+x-volumes: &volumes
+  # Bind-mount the repo for hot reload, then shadow every workspace node_modules
+  # with an anonymous volume so the image's Linux install survives the mount.
+  - ./:/repo
+  - /repo/node_modules
+  - /repo/apps/api/node_modules
+  - /repo/apps/shell/node_modules
+  - /repo/apps/dashboard/node_modules
+  - /repo/apps/tasks/node_modules
+  - /repo/packages/api-client/node_modules
+  - /repo/packages/auth/node_modules
+  - /repo/packages/eslint-config/node_modules
+  - /repo/packages/tailwind-config/node_modules
+  - /repo/packages/tsconfig/node_modules
+  - /repo/packages/types/node_modules
+  - /repo/packages/ui/node_modules
+
+services:
+  api:
+    build: *web-build
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    # Env is injected here (no .env file), so we skip the dev script's --env-file.
+    command: pnpm --filter @pulse/api exec tsx watch src/server.ts
+    environment:
+      NODE_ENV: development
+      PORT: "4000"
+      # Cloud-hosted MongoDB. Set MONGO_URI in a root .env (git-ignored).
+      MONGO_URI: ${MONGO_URI:?set MONGO_URI in your .env to your cloud connection string}
+      # Dev-only secrets. Override via a root .env for anything shared/real.
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-only-change-me-please-0000000000000000000000}
+      REFRESH_TOKEN_PEPPER: ${REFRESH_TOKEN_PEPPER:-dev-only-change-me-please-0000000000000000000000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      COOKIE_SECURE: "false"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes: *volumes
+
+  shell:
+    build: *web-build
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    command: pnpm --filter shell run dev -- --host 0.0.0.0
+    environment:
+      VITE_API_URL: http://localhost:4000
+      VITE_REMOTE_DASHBOARD: http://localhost:3001/assets/remoteEntry.js
+      VITE_REMOTE_TASKS: http://localhost:3002/assets/remoteEntry.js
+    volumes: *volumes
+
+  dashboard:
+    build: *web-build
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    command: pnpm --filter dashboard run dev -- --host 0.0.0.0
+    environment:
+      VITE_API_URL: http://localhost:4000
+    volumes: *volumes
+
+  tasks:
+    build: *web-build
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    command: pnpm --filter tasks run dev -- --host 0.0.0.0
+    environment:
+      VITE_API_URL: http://localhost:4000
+    volumes: *volumes
