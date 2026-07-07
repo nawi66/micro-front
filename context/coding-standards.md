@@ -14,6 +14,10 @@
 - Keep components focused - one job per component
 - Extract reusable logic into custom hooks
 
+## Package
+
+- whenever possible try to move the reusable code and package into packages
+
 
 ## Tailwind CSS v4
 

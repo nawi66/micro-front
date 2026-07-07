@@ -1,9 +1,9 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@pulse/auth";
 import { Button, cn } from "@pulse/ui";
-import { useTheme } from "../stores/theme.js";
+import { useTheme, useWorkspaceStore } from "@pulse/store";
 import { useWorkspaces } from "../hooks/useWorkspaces.js";
-import { useWorkspaceStore } from "../stores/workspace.js";
+import { NotificationBell } from "./NotificationBell.js";
 
 const NAV = [
   { to: "/", label: "Dashboard", exact: true },
@@ -69,9 +69,10 @@ export function Layout() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-glass-border bg-glass px-5 backdrop-blur-xl">
+        <header className="relative z-20 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-glass-border bg-glass px-5 backdrop-blur-xl">
           <WorkspaceSwitcher />
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
               {theme === "dark" ? "☀️" : "🌙"}
             </Button>

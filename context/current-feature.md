@@ -2,58 +2,53 @@
 
 ## Status
 
-**Done — merged to `main`** (2026-07-06). All four backend modules and three MFEs shipped
-on `feature/docs-team-admin`, verified by the user, merged, and the branch deleted.
-`pnpm typecheck` green (11 packages), `pnpm build` green (7 tasks: api + all 6 apps),
-`pnpm lint` clean (only a pre-existing warning in `error.ts`), and
-`pnpm --filter @pulse/api test` is 46/46 (was 17 — 29 new across docs/users/team/admin).
-Live runtime boot against real Mongo remains deferred to the user (env vars first).
+**In progress** — started 2026-07-06 on `feature/global-store`.
 
 ### Goal
-Complete the product surface beyond the vertical slice. Build out the remaining federated
-MFEs (`docs`, `team`, `admin`) and their backing REST modules (`users`, `docs`, `team`,
-`admin`), each to the same production-quality bar as the `auth`/`workspaces`/`tasks` slice
-already in place. Every module tenant-scoped, guarded, validated, and integration-tested.
+Introduce a shared, persisted global store package (`@pulse/store`) that both the shell
+host and the federated remotes read/write, and surface it in the UI: a notification bell in
+the shell header whose tooltip shows live "To do" / "In progress" task counts published by
+the `tasks` remote. Demonstrates cross-MFE communication via a shared Zustand singleton
+(§5, option 2) with state that survives a page refresh.
 
 ### In scope
 
-**Backend `apps/api` — new modules** (each follows the reference module shape in
-`apps/api/src/modules/auth/`: routes → controller → service → schema → model → test):
-- **users** — profile read/update, list workspace members, change own password. No
-  cross-workspace leakage; user lookups scoped through workspace membership.
-- **docs** — tenant-scoped CRUD for documents. `$text` index for search (never regex on
-  input). Body-size limit raised locally for doc content.
-- **team** — workspace member management: invite, list, change role, remove. Emits audit
-  logs (member added, role changed) per §9.7. Owner/admin guarded.
-- **admin** — workspace-level administration: settings, member overview, danger-zone
-  actions. `requireRole('owner', 'admin')` throughout.
+**New package `packages/store` (`@pulse/store`)** — a shared federation singleton (same role
+as `@pulse/auth`): all shell-owned client state lives here, built on Zustand with the
+`persist` middleware (localStorage) so it survives refresh.
+- `useTheme` — dark-mode store (moved out of `apps/shell/src/stores/theme.ts`), persisted,
+  applies the `dark` class on `<html>` on rehydrate.
+- `useWorkspaceStore` — active workspace id (moved out of `apps/shell/src/stores/workspace.ts`),
+  persisted.
+- `useNotificationStore` / `useTaskSummary` — task summary (`todo`, `inProgress`, `total`,
+  `updatedAt`) written by the `tasks` remote, read by the shell header. Persisted.
 
-Each module: compound index leading with `workspaceId`; `toDTO()` stripping internal
-fields; `.strict()` Zod schemas; guard stack `requireAuth → requireWorkspace →
-requireRole(...) → validate(...)`. Integration tests cover: unauth → 401, wrong role →
-403, cross-workspace → 403, invalid body → 400, happy path → 2xx.
+**Shared UI primitive** — a generic `Tooltip` in `@pulse/ui` (hover + keyboard-focus,
+`role="tooltip"`), no new dependency.
 
-**Frontend — new federated MFEs** (copy `apps/tasks/` structure; single mount fn + route
-manifest from `src/bootstrap.tsx`):
-- **docs** (port 3003) — document list + editor, backed by the docs module.
-- **team** (port 3004) — member roster, invite/role UI, backed by the team module.
-- **admin** (port 3005) — workspace settings + admin surface, backed by the admin module.
+**Shell** — a `NotificationBell` header component (right side) using `Tooltip` + `Badge`
+that reads `useTaskSummary()` and shows counts; unread badge reflects `todo + inProgress`.
+Re-point `Layout.tsx` and `useWorkspaces.ts` to `@pulse/store`; delete the two old shell
+store files.
 
-Each: registered in `apps/shell/src/config/remotes.ts`; consumes the API via
-`@pulse/api-client` hooks (new endpoint files with Zod response schemas) + `@pulse/auth`
-guards; visual primitives from `@pulse/ui`; standalone dev via `VITE_MOCK_AUTH=true`.
+**tasks remote** — publish its `todo` / `in_progress` / total counts into
+`useNotificationStore` whenever its task query data changes.
+
+**Federation** — add `@pulse/store` to the `shared` singletons list in the `shell` and
+`tasks` vite configs so both share one store instance at runtime.
 
 ### Out of scope (later)
-- Email verification/reset delivery, 2FA enforcement (schema-ready, deferred).
-- Playwright E2E across the new MFEs, `@pulse/utils`.
-- `packages/api-contracts` (shared Zod schemas FE↔BE) — deferred until duplication hurts.
+- The `@pulse/auth` store stays in `@pulse/auth` — it is coupled to the API client and is
+  already its own federation singleton; not moved.
+- Publishing summaries from `docs`/`team`/`admin`; richer notification feed / read state.
+- Playwright E2E for the bell.
 
 ### Acceptance
-- `pnpm install` + `pnpm build` + `pnpm typecheck` pass across all apps.
-- `pnpm --filter @pulse/api test` green, including new users/docs/team/admin suites.
-- Shell composes all six remotes (`dashboard`, `tasks`, `docs`, `team`, `admin`) without a
-  failed remote breaking the shell; auth + tenancy enforced end-to-end.
-- CLAUDE.md port table + module list updated to reflect the new surface.
+- `pnpm install` + `pnpm typecheck` + `pnpm build` pass across all apps.
+- Theme and active workspace persist across a refresh; task counts persist and update.
+- Navigating `tasks` updates the shell's notification bell via the shared store, with no
+  cross-`apps/*` import (communication is via `@pulse/store` only).
+- CLAUDE.md shared-packages section updated to list `@pulse/store`.
 
 ## History
 

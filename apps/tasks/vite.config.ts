@@ -18,7 +18,14 @@ export default defineConfig({
       exposes: {
         "./App": "./src/bootstrap.tsx",
       },
-      shared: ["react", "react-dom", "@tanstack/react-query", "@pulse/auth", "@pulse/ui"],
+      shared: [
+        "react",
+        "react-dom",
+        "@tanstack/react-query",
+        "@pulse/auth",
+        "@pulse/store",
+        "@pulse/ui",
+      ],
     }),
   ],
   server: { port: 3002, strictPort: true },

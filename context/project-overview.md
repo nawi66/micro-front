@@ -140,9 +140,9 @@ The shell reads `VITE_API_URL=http://localhost:4000` from its env. Each MFE read
 ## 5. Frontend: Microfrontend Composition
 
 - Each remote MFE exports a single mount function and a route manifest from `src/bootstrap.tsx`.
-- The shell's `vite.config.ts` declares each remote and shared singletons (`react`, `react-dom`, `@tanstack/react-query`, `@pulse/auth`, `@pulse/ui`).
+- The shell's `vite.config.ts` declares each remote and shared singletons (`react`, `react-dom`, `@tanstack/react-query`, `@pulse/auth`, `@pulse/store`, `@pulse/ui`). Any MFE that reads/writes shared client state must list `@pulse/store` in its own `shared` array too.
 - The shell lazy-loads remotes with `React.lazy` inside `<RemoteErrorBoundary />`. A failed remote must never break the shell.
-- **Never** import from `apps/*` in another `apps/*`. Cross-MFE communication is: (1) URL/route params, (2) shared Zustand store exposed from `@pulse/auth`, (3) typed `window` events for fire-and-forget signals (last resort).
+- **Never** import from `apps/*` in another `apps/*`. Cross-MFE communication is: (1) URL/route params, (2) shared Zustand stores exposed from `@pulse/store` (and the auth store from `@pulse/auth`), (3) typed `window` events for fire-and-forget signals (last resort).
 - Every MFE runs standalone with `VITE_MOCK_AUTH=true`, which short-circuits `@pulse/auth` with a fixture user.
 
 ## 6. Frontend: Shared Packages
@@ -151,7 +151,10 @@ The shell reads `VITE_API_URL=http://localhost:4000` from its env. Each MFE read
 Component library. Radix + CVA. Every visual primitive lives here. Any component used in ≥2 MFEs belongs here — move it before writing it twice.
 
 ### `@pulse/auth`
-Client-side auth. Exposes `<AuthProvider />`, `useAuth()`, `useUser()`, `RequireAuth`, `RequireRole`. Owns the in-memory access token. Wraps the API client's fetch to auto-refresh on 401.
+Client-side auth. Exposes `<AuthProvider />`, `useAuth()`, `useUser()`, `RequireAuth`, `RequireRole`. Owns the in-memory access token. Wraps the API client's fetch to auto-refresh on 401. (The auth store stays here — it's coupled to the API client — and is its own federation singleton.)
+
+### `@pulse/store`
+Shared client state for the shell + all MFEs, and the sanctioned channel for cross-MFE communication. A federation singleton (like `@pulse/auth`): every app touches the same instances at runtime. Built on Zustand + the `persist` middleware, so state survives a refresh. Exposes `useTheme` (dark mode), `useWorkspaceStore` (active workspace id), and `useNotificationStore`/`useTaskSummary` (task summary the `tasks` remote publishes and the shell header reads). No React components, no API calls.
 
 ### `@pulse/api-client`
 Typed fetch wrapper. One `createClient({ baseUrl, getToken })` factory. All endpoints declared in `packages/api-client/src/endpoints/*.ts` with Zod response schemas. MFEs consume via TanStack Query hooks.

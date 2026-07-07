@@ -12,3 +12,4 @@ export {
 } from "./Card.js";
 export { Badge, type BadgeProps } from "./Badge.js";
 export { Spinner } from "./Spinner.js";
+export { Tooltip, type TooltipProps } from "./Tooltip.js";

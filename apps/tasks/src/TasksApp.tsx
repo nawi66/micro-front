@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { Task, TaskPriority } from "@pulse/types";
 import { Button, Field, Input, Spinner } from "@pulse/ui";
+import { useNotificationStore } from "@pulse/store";
 import { useCreateTask, useDeleteTask, useTasks, useUpdateTask } from "./hooks/useTasks.js";
 import { NEXT_STATUS, TaskItem } from "./TaskItem.js";
 
@@ -40,6 +42,18 @@ export default function TasksApp({ workspaceId }: { workspaceId: string }) {
     status,
     items: tasks.filter((t) => t.status === status),
   }));
+
+  // Publish the open-work summary into the shared store so the shell's
+  // notification bell reflects it — cross-MFE communication via @pulse/store (§5).
+  const setTaskSummary = useNotificationStore((s) => s.setTaskSummary);
+  useEffect(() => {
+    if (!tasksQuery.data) return;
+    setTaskSummary({
+      todo: tasks.filter((t) => t.status === "todo").length,
+      inProgress: tasks.filter((t) => t.status === "in_progress").length,
+      total: tasks.length,
+    });
+  }, [tasksQuery.data, tasks, setTaskSummary]);
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6">

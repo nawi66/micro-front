@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "@pulse/auth";
 import type { Workspace } from "@pulse/types";
-import { useWorkspaceStore } from "../stores/workspace.js";
+import { useWorkspaceStore } from "@pulse/store";
 
 const KEY = ["workspaces"] as const;
 
