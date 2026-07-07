@@ -2,55 +2,34 @@
 
 ## Status
 
-**In progress** — started 2026-07-06 on `feature/global-store`.
-
-### Goal
-Introduce a shared, persisted global store package (`@pulse/store`) that both the shell
-host and the federated remotes read/write, and surface it in the UI: a notification bell in
-the shell header whose tooltip shows live "To do" / "In progress" task counts published by
-the `tasks` remote. Demonstrates cross-MFE communication via a shared Zustand singleton
-(§5, option 2) with state that survives a page refresh.
-
-### In scope
-
-**New package `packages/store` (`@pulse/store`)** — a shared federation singleton (same role
-as `@pulse/auth`): all shell-owned client state lives here, built on Zustand with the
-`persist` middleware (localStorage) so it survives refresh.
-- `useTheme` — dark-mode store (moved out of `apps/shell/src/stores/theme.ts`), persisted,
-  applies the `dark` class on `<html>` on rehydrate.
-- `useWorkspaceStore` — active workspace id (moved out of `apps/shell/src/stores/workspace.ts`),
-  persisted.
-- `useNotificationStore` / `useTaskSummary` — task summary (`todo`, `inProgress`, `total`,
-  `updatedAt`) written by the `tasks` remote, read by the shell header. Persisted.
-
-**Shared UI primitive** — a generic `Tooltip` in `@pulse/ui` (hover + keyboard-focus,
-`role="tooltip"`), no new dependency.
-
-**Shell** — a `NotificationBell` header component (right side) using `Tooltip` + `Badge`
-that reads `useTaskSummary()` and shows counts; unread badge reflects `todo + inProgress`.
-Re-point `Layout.tsx` and `useWorkspaces.ts` to `@pulse/store`; delete the two old shell
-store files.
-
-**tasks remote** — publish its `todo` / `in_progress` / total counts into
-`useNotificationStore` whenever its task query data changes.
-
-**Federation** — add `@pulse/store` to the `shared` singletons list in the `shell` and
-`tasks` vite configs so both share one store instance at runtime.
-
-### Out of scope (later)
-- The `@pulse/auth` store stays in `@pulse/auth` — it is coupled to the API client and is
-  already its own federation singleton; not moved.
-- Publishing summaries from `docs`/`team`/`admin`; richer notification feed / read state.
-- Playwright E2E for the bell.
-
-### Acceptance
-- `pnpm install` + `pnpm typecheck` + `pnpm build` pass across all apps.
-- Theme and active workspace persist across a refresh; task counts persist and update.
-- Navigating `tasks` updates the shell's notification bell via the shared store, with no
-  cross-`apps/*` import (communication is via `@pulse/store` only).
-- CLAUDE.md shared-packages section updated to list `@pulse/store`.
+**None in progress.** Last completed: **Architecture documentation (`context/architecture.md`)** — see History.
 
 ## History
+
+- **2026-07-07** — **Architecture documentation** — *Done, merged to `main`.* Added
+  `context/architecture.md`, a code-grounded walkthrough of the PulseHQ structure: the
+  Turborepo layout + dev ports, the frontend Module Federation topology (shell host + five
+  remotes, shared singletons), the three cross-MFE communication channels (`@pulse/store`,
+  `@pulse/auth`, unused window events), the end-to-end auth flow, the backend request
+  lifecycle + guard stack, and architectural watch items (shared-list drift, unused window
+  channel) — with Mermaid diagrams and source-traced file references throughout. Registered
+  the new doc in `CLAUDE.md`'s context-files list so it loads with project context.
+
+- **2026-07-07** — **Shared global store (`@pulse/store`) + notification bell** — *Done, merged
+  to `main`.* Introduced `packages/store` (`@pulse/store`), a persisted (Zustand + `persist`,
+  localStorage) federation singleton shared by the shell and remotes: `useTheme` (dark mode,
+  applies `dark` class on rehydrate) and `useWorkspaceStore` (active workspace id) moved out
+  of `apps/shell/src/stores/{theme,workspace}.ts`, plus new `useNotificationStore` /
+  `useTaskSummary` (`todo`, `inProgress`, `total`, `updatedAt`) for cross-MFE communication.
+  Added a generic `Tooltip` primitive to `@pulse/ui` (hover + keyboard focus, `role="tooltip"`,
+  no new dependency) and a shell `NotificationBell` header component (`Tooltip` + `Badge`)
+  reading `useTaskSummary()`; the `tasks` remote publishes its todo/in-progress/total counts
+  into `useNotificationStore` on query-data change. Re-pointed `Layout.tsx` and
+  `useWorkspaces.ts` to `@pulse/store`, deleted the two old shell store files, and added
+  `@pulse/store` to the shared singletons in the shell + tasks vite configs. Typecheck (12/12)
+  and build (7/7) green; `@pulse/store` federating in both shell and tasks. Cross-MFE
+  communication via the shared store only — no cross-`apps/*` import. Committed on
+  `feature/global-store`, merged `--no-ff` to `main`, branch deleted, pushed to origin.
 
 - **2026-07-06** — **Docs / Team / Admin surface** — *Done, merged to `main`.* Added backend
   modules `users` (profile + password change with session revocation, delegating to
